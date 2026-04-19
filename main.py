@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai
-from google.cloud import logging as cloud_logging
+
 import os
 import logging
 import time
@@ -15,9 +15,9 @@ logger = logging.getLogger(_name_)
 
 # Google Cloud Logging
 try:
-    cloud_client = cloud_logging.Client()
-    cloud_client.setup_logging()
-    logger.info("Google Cloud Logging initialized")
+    
+    
+
 except Exception:
     logger.info("Running without Cloud Logging")
 
