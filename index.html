@@ -1,342 +1,445 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartLife AI Assistant</title>
-    <style>
-        :root {
-            --primary: #8b5cf6;
-            --primary-dark: #7c3aed;
-            --bg-color: #0f172a;
-            --chat-bg: #1e293b;
-            --text-light: #f8fafc;
-            --text-muted: #94a3b8;
-            --user-msg: #8b5cf6;
-            --bot-msg: #334155;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            background-image: radial-gradient(circle at top right, #3b0764 0%, transparent 40%),
-                              radial-gradient(circle at bottom left, #172554 0%, transparent 40%);
-            color: var(--text-light);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .chat-container {
-            width: 100%;
-            max-width: 800px;
-            height: 90vh;
-            background-color: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .header {
-            padding: 20px;
-            background: linear-gradient(to right, rgba(139, 92, 246, 0.2), rgba(30, 41, 59, 0));
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            background: linear-gradient(to right, #c4b5fd, #a78bfa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .header p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-top: 5px;
-        }
-
-        .chat-box {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            scroll-behavior: smooth;
-        }
-
-        .message {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            line-height: 1.5;
-            font-size: 0.95rem;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .user-message {
-            align-self: flex-end;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-
-        .bot-message {
-            align-self: flex-start;
-            background-color: var(--bot-msg);
-            color: var(--text-light);
-            border-bottom-left-radius: 4px;
-        }
-        
-        .bot-message p {
-            margin-bottom: 10px;
-        }
-        .bot-message p:last-child {
-            margin-bottom: 0;
-        }
-
-        .suggestions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding: 0 20px 10px 20px;
-            justify-content: center;
-        }
-
-        .suggestion-btn {
-            background-color: rgba(139, 92, 246, 0.1);
-            color: #c4b5fd;
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .suggestion-btn:hover {
-            background-color: rgba(139, 92, 246, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .input-area {
-            padding: 20px;
-            background-color: rgba(15, 23, 42, 0.5);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            gap: 10px;
-        }
-
-        .input-box {
-            flex: 1;
-            background-color: var(--bot-msg);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 25px;
-            color: var(--text-light);
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .input-box:focus {
-            border-color: var(--primary);
-        }
-
-        .send-btn {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .send-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
-        }
-
-        .send-btn svg {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
-        }
-
-        .typing-indicator {
-            display: none;
-            align-self: flex-start;
-            background-color: var(--bot-msg);
-            padding: 12px 16px;
-            border-radius: 18px;
-            border-bottom-left-radius: 4px;
-        }
-
-        .typing-indicator span {
-            display: inline-block;
-            width: 6px;
-            height: 6px;
-            background-color: var(--text-muted);
-            border-radius: 50%;
-            margin: 0 2px;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-
-        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
-        
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="SmartLife AI - Intelligent assistant for Physical Event Experience and life guidance powered by Google Gemini">
+<title>SmartLife AI Assistant</title>
+<style>
+  :root {
+    --primary: #667eea;
+    --secondary: #764ba2;
+    --bg: #f0f2f5;
+    --white: #ffffff;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --success: #4ade80;
+    --error: #f87171;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary);
+    color: white;
+    padding: 8px;
+    z-index: 100;
+    border-radius: 4px;
+  }
+  .skip-link:focus { top: 0; }
+  .container {
+    width: 100%;
+    max-width: 820px;
+    height: 92vh;
+    background: var(--white);
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+  }
+  header role="banner" { display: contents; }
+  .header {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .avatar {
+    width: 48px; height: 48px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    aria-hidden: true;
+  }
+  .header-text h1 { font-size: 20px; font-weight: 700; }
+  .header-text p { font-size: 13px; opacity: 0.85; margin-top: 2px; }
+  .status {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+  }
+  .status-dot {
+    width: 10px; height: 10px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-behavior: smooth;
+  }
+  .messages:focus { outline: 2px solid var(--primary); }
+  .message {
+    display: flex;
+    gap: 10px;
+    max-width: 82%;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .message.user {
+    margin-left: auto;
+    flex-direction: row-reverse;
+  }
+  .msg-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    aria-hidden: true;
+  }
+  .bot-avatar { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
+  .user-avatar { background: linear-gradient(135deg, #f093fb, #f5576c); }
+  .msg-content {
+    background: #f1f5f9;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text);
+    max-width: 100%;
+    word-wrap: break-word;
+  }
+  .message.user .msg-content {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+  }
+  .typing {
+    display: flex;
+    gap: 5px;
+    padding: 14px 18px;
+    background: #f1f5f9;
+    border-radius: 18px;
+    width: fit-content;
+    aria-label: "AI is thinking";
+  }
+  .typing span {
+    width: 8px; height: 8px;
+    background: #94a3b8;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%,60%,100% { transform: translateY(0); }
+    30% { transform: translateY(-8px); }
+  }
+  nav aria-label="Quick suggestions" { display: contents; }
+  .suggestions {
+    display: flex;
+    gap: 8px;
+    padding: 10px 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-top: 1px solid var(--border);
+  }
+  .suggestions::-webkit-scrollbar { display: none; }
+  .suggestion-btn {
+    background: #f1f5f9;
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .suggestion-btn:hover,
+  .suggestion-btn:focus {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    outline: none;
+  }
+  .suggestion-btn:focus-visible {
+    outline: 3px solid var(--secondary);
+    outline-offset: 2px;
+  }
+  .input-area {
+    padding: 14px 18px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    background: white;
+  }
+  .input-wrapper { flex: 1; position: relative; }
+  textarea {
+    width: 100%;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+    font-family: inherit;
+    max-height: 120px;
+    transition: border-color 0.2s;
+    background: #f8fafc;
+    color: var(--text);
+  }
+  textarea:focus {
+    border-color: var(--primary);
+    background: white;
+  }
+  .char-count {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .send-btn {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: opacity 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .send-btn:hover { opacity: 0.9; transform: scale(1.05); }
+  .send-btn:focus-visible { outline: 3px solid var(--secondary); outline-offset: 2px; }
+  .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .error-msg {
+    color: var(--error);
+    font-size: 13px;
+    padding: 8px 20px;
+    text-align: center;
+  }
+  @media (max-width: 600px) {
+    .container { height: 100vh; border-radius: 0; }
+    .message { max-width: 90%; }
+  }
+</style>
 </head>
 <body>
+<a href="#main-input" class="skip-link">Skip to input</a>
 
-    <div class="chat-container">
-        <div class="header">
-            <h1>SmartLife AI</h1>
-            <p>Your Indian Career, Finance & Life Assistant</p>
-        </div>
+<div class="container" role="main">
+  <div class="header" role="banner">
+    <div class="avatar" aria-hidden="true">🤖</div>
+    <div class="header-text">
+      <h1>SmartLife AI</h1>
+      <p>Physical Event & Life Assistant — Powered by Google Gemini</p>
+    </div>
+    <div class="status" aria-live="polite">
+      <div class="status-dot" aria-hidden="true"></div>
+      <span>Online</span>
+    </div>
+  </div>
 
-        <div class="chat-box" id="chatBox">
-            <div class="message bot-message">
-                Hello! I'm SmartLife AI, your personal assistant tailored for the Indian context. I can help you with career growth, financial planning, studies, and life advice. How can I help you today?
-            </div>
-            
-            <div class="typing-indicator" id="typingIndicator">
-                <span></span><span></span><span></span>
-            </div>
+  <main>
+    <div class="messages" id="messages" role="log" aria-live="polite" aria-label="Chat messages" tabindex="0">
+      <div class="message bot" role="article" aria-label="Assistant message">
+        <div class="msg-avatar bot-avatar" aria-hidden="true">🤖</div>
+        <div class="msg-content">
+          👋 <strong>Namaste! I'm SmartLife AI</strong> — your intelligent assistant powered by Google Gemini 2.5 Flash.<br><br>
+          I specialize in:<br>
+          🎪 <strong>Physical Event Planning</strong> — venues, logistics, budgets<br>
+          🎯 <strong>Career & Interview Prep</strong><br>
+          💰 <strong>Finance Planning</strong> (₹ Indian context)<br>
+          📚 <strong>Study & Exam Guidance</strong><br>
+          💡 <strong>Life Decisions & Advice</strong><br><br>
+          How can I help you today?
         </div>
-
-        <div class="suggestions">
-            <button class="suggestion-btn" onclick="sendSuggestion('Help me prepare for a software engineering job interview')">Job Interview Prep</button>
-            <button class="suggestion-btn" onclick="sendSuggestion('Create a monthly budget plan for a fresher earning ₹40,000')">Budget Planning</button>
-            <button class="suggestion-btn" onclick="sendSuggestion('Make a 3-month study plan for UPSC prelims')">Study Plan</button>
-            <button class="suggestion-btn" onclick="sendSuggestion('What skills are in demand for IT careers in India?')">Career Skills</button>
-            <button class="suggestion-btn" onclick="sendSuggestion('How to optimize my LinkedIn profile for Indian recruiters?')">LinkedIn Help</button>
-        </div>
-
-        <div class="input-area">
-            <input type="text" class="input-box" id="userInput" placeholder="Ask anything..." onkeypress="handleKeyPress(event)">
-            <button class="send-btn" onclick="sendMessage()">
-                <svg viewBox="0 0 24 24">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
-                </svg>
-            </button>
-        </div>
+      </div>
     </div>
 
-    <script>
-        const chatBox = document.getElementById('chatBox');
-        const userInput = document.getElementById('userInput');
-        const typingIndicator = document.getElementById('typingIndicator');
+    <nav aria-label="Quick suggestions">
+      <div class="suggestions" role="navigation">
+        <button class="suggestion-btn" onclick="sendSuggestion(this)" aria-label="Plan a physical event">🎪 Plan an Event</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)" aria-label="Job interview preparation">💼 Interview Prep</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)" aria-label="Budget planning in rupees">💰 Budget Planning</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)" aria-label="Create a study plan">📚 Study Plan</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)" aria-label="Career skills advice">🚀 Career Skills</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this)" aria-label="Write LinkedIn post">🔗 LinkedIn Help</button>
+      </div>
+    </nav>
 
-        function appendMessage(sender, text) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}-message`;
-            
-            // Format basic markdown (bold, italic and line breaks)
-            const formattedText = text
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/\n/g, '<br>');
-                
-            messageDiv.innerHTML = formattedText;
-            
-            chatBox.insertBefore(messageDiv, typingIndicator);
-            scrollToBottom();
-        }
+    <div class="input-area">
+      <div class="input-wrapper">
+        <textarea
+          id="main-input"
+          placeholder="Ask me anything — events, career, finance, study..."
+          rows="1"
+          maxlength="2000"
+          aria-label="Type your message"
+          aria-multiline="true"
+          aria-required="true"
+        ></textarea>
+        <span class="char-count" aria-live="polite" id="charCount">0/2000</span>
+      </div>
+      <button
+        class="send-btn"
+        id="sendBtn"
+        onclick="sendMessage()"
+        aria-label="Send message"
+        title="Send message (Enter)"
+      >➤</button>
+    </div>
+  </main>
+</div>
 
-        function scrollToBottom() {
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
+<script>
+  const messagesDiv = document.getElementById('messages');
+  const input = document.getElementById('main-input');
+  const sendBtn = document.getElementById('sendBtn');
+  const charCount = document.getElementById('charCount');
 
-        function sendSuggestion(text) {
-            userInput.value = text;
-            sendMessage();
-        }
+  const suggestions = {
+    '🎪 Plan an Event': 'Help me plan a physical event in India. I need help with venue selection, logistics, and budget planning.',
+    '💼 Interview Prep': 'Help me prepare for a software engineering job interview at an Indian product company.',
+    '💰 Budget Planning': 'Help me create a monthly budget plan with ₹35,000 salary in Mumbai.',
+    '📚 Study Plan': 'Create a 30-day study plan for my upcoming competitive exam.',
+    '🚀 Career Skills': 'What are the top skills I should learn in 2026 for an AI/ML career in India?',
+    '🔗 LinkedIn Help': 'Help me write a professional LinkedIn post about my recent project.'
+  };
 
-        function handleKeyPress(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        }
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
 
-        async function sendMessage() {
-            const message = userInput.value.trim();
-            if (!message) return;
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    charCount.textContent = input.value.length + '/2000';
+  });
 
-            // Add user message
-            appendMessage('user', message);
-            userInput.value = '';
-            
-            // Show typing indicator
-            typingIndicator.style.display = 'flex';
-            scrollToBottom();
+  function addMessage(content, isUser) {
+    const div = document.createElement('div');
+    div.className = message ${isUser ? 'user' : 'bot'};
+    div.setAttribute('role', 'article');
+    div.setAttribute('aria-label', isUser ? 'Your message' : 'Assistant message');
+    const formatted = content
+      .replace(/\n/g, '<br>')
+      .replace(/\\(.?)\\*/g, '<strong>$1</strong>')
+      .replace(/\(.?)\*/g, '<em>$1</em>')
+      .replace(/#{3} (.*?)(<br>|$)/g, '<h3 style="margin:8px 0 4px">$1</h3>')
+      .replace(/## (.*?)(<br>|$)/g, '<h2 style="margin:10px 0 4px;font-size:15px">$1</h2>');
+    div.innerHTML = `
+      <div class="msg-avatar ${isUser ? 'user-avatar' : 'bot-avatar'}" aria-hidden="true">${isUser ? '👤' : '🤖'}</div>
+      <div class="msg-content">${formatted}</div>
+    `;
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    div.querySelector('.msg-content').focus();
+  }
 
-            try {
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ message: message })
-                });
+  function showTyping() {
+    const div = document.createElement('div');
+    div.className = 'message bot';
+    div.id = 'typing-indicator';
+    div.setAttribute('aria-label', 'AI is thinking');
+    div.setAttribute('role', 'status');
+    div.innerHTML = `
+      <div class="msg-avatar bot-avatar" aria-hidden="true">🤖</div>
+      <div class="typing" aria-label="Loading response"><span></span><span></span><span></span></div>
+    `;
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
 
-                const data = await response.json();
-                
-                // Hide typing indicator
-                typingIndicator.style.display = 'none';
+  function removeTyping() {
+    const t = document.getElementById('typing-indicator');
+    if (t) t.remove();
+  }
 
-                if (response.ok) {
-                    appendMessage('bot', data.reply);
-                } else {
-                    appendMessage('bot', `Error: ${data.detail || 'Something went wrong'}`);
-                }
-            } catch (error) {
-                typingIndicator.style.display = 'none';
-                appendMessage('bot', 'Network error. Please try again later.');
-            }
-        }
-    </script>
+  async function sendMessage() {
+    const msg = input.value.trim();
+    if (!msg || sendBtn.disabled) return;
+
+    input.value = '';
+    input.style.height = 'auto';
+    charCount.textContent = '0/2000';
+    sendBtn.disabled = true;
+    sendBtn.setAttribute('aria-busy', 'true');
+
+    addMessage(msg, true);
+    showTyping();
+
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message: msg})
+      });
+
+      removeTyping();
+
+      if (!res.ok) {
+        const err = await res.json();
+        addMessage('⚠️ ' + (err.detail || 'Something went wrong. Please try again.'), false);
+      } else {
+        const data = await res.json();
+        addMessage(data.reply, false);
+      }
+    } catch (e) {
+      removeTyping();
+      addMessage('⚠️ Network error. Please check your connection and try again.', false);
+    }
+
+    sendBtn.disabled = false;
+    sendBtn.setAttribute('aria-busy', 'false');
+    input.focus();
+  }
+
+  function sendSuggestion(btn) {
+    const text = suggestions[btn.textContent.trim()] || btn.textContent.trim();
+    input.value = text;
+    charCount.textContent = text.length + '/2000';
+    sendMessage();
+  }
+</script>
 </body>
 </html>
